@@ -7,31 +7,6 @@ if node['net']
   the_hostname = node['net']['hostname']
   ip           = node['net']['IP']
 
-  if fqdn && node['fqdn'] != fqdn
-    # Update the FQDN
-    case node['platform']
-    when 'ubuntu', 'debian'
-      hostsfile_entry '127.0.1.1' do
-        hostname fqdn
-        aliases [ the_hostname ]
-      end
-    when 'redhat', 'centos'
-      hostsfile_entry ip do
-        hostname fqdn
-        aliases [ the_hostname ]
-      end
-    when 'gentoo'
-      hostsfile_entry '127.0.0.1' do
-        hostname fqdn
-        aliases [ the_hostname, 'localhost.localdomain', 'localhost' ]
-      end
-    end
-
-    execute "true" do
-      notifies :reload, 'ohai[reload]'
-    end
-  end
-
   if node['hostname'] != the_hostname
     # Update the hostname
     case node['platform']
@@ -60,6 +35,34 @@ if node['net']
     end
 
     execute "hostname #{the_hostname}" do
+      notifies :reload, 'ohai[reload]'
+    end
+  end
+
+  if fqdn && node['fqdn'] != fqdn
+    # Update the FQDN
+    case node['platform']
+    when 'ubuntu', 'debian'
+      hostsfile_entry '127.0.1.1' do
+        hostname fqdn
+        priority 82
+        aliases [ the_hostname ]
+      end
+    when 'redhat', 'centos'
+      hostsfile_entry ip do
+        hostname fqdn
+        priority 82
+        aliases [ the_hostname ]
+      end
+    when 'gentoo'
+      hostsfile_entry '127.0.0.1' do
+        hostname fqdn
+        priority 82
+        aliases [ the_hostname, 'localhost.localdomain', 'localhost' ]
+      end
+    end
+
+    execute "true" do
       notifies :reload, 'ohai[reload]'
     end
   end
